@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.model.User">
+	
+	<!-- 查询所有用户 
+		
+		注意：id一定要见名知意，后面有用。
+			resultType：指明返回类型的类型
+	-->
+	<select id="getAllUser" resultType="com.demo.model.User">
+		select user_id userId, username, age, password from user;
+	</select>
+	
+	<!-- #{id} 占位符
+	
+		parameterType(输入类型)
+			
+		resultType(输出类型)
+	 -->
+	<select id="getUserById" parameterType="int" resultType="com.demo.model.User">
+		select user_id userId, username, age, password from user where user_id = #{id}; 
+	</select>
+	<!-- 
+		单个基本类型使用value代替，除了id外
+		
+		像like这样的模糊查询也需要遵循对应类型匹配机制，使用单引号包裹。
+		
+		注意：如果是取简单数量类型的参数，括号中的值必须为value
+		
+		#{}表示一个占位符号，通过#{}可以实现preparedStatement向占位符中设置值，自动进行java类型和jdbc类型转换，#{}可以有效防止sql注入。
+		#{}可以接收简单类型值或pojo属性值。 如果parameterType传输单个简单类型值，#{}括号中可以是value或其它名称。
+
+		${}表示拼接sql串，通过${}可以将parameterType 传入的内容拼接在sql中且不进行jdbc类型转换， ${}可以接收简单类型值或pojo属性值，
+		如果parameterType传输单个简单类型值，${}括号中只能是value。
+		
+	 -->
+	<select id="getUserByLikeUsername" parameterType="string" resultType="com.demo.model.User">
+		select user_id userId, username, age, password from user where username like '%${value}%';
+	</select>
+	<select id="getUserByUsernameAndId" parameterType="com.demo.model.User" resultType="com.demo.model.User">
+		select user_id userId, username, age, password from user where username = #{username} and user_id = #{userId};
+	</select>
+	
+	
+	<insert id="addUser" parameterType="com.demo.model.User">
+		<!-- 将主键返回，需要的时候自动会返回
+			由于主键采用的是自增，所以在插入的时候传入null
+			但是返回要用的时候需要设置
+			 order="AFTER"：是AFTER的话是执行sql语句之后再设置keyProperty的值
+			 order="BEFORE"：表示在Sql执行之前先设置keyProperty的值，一般用于自己设置主键，或者不支持自增主键的数据库
+			 
+			<selectKey order="AFTER" keyProperty="userId" resultType="int">
+				select LAST_INSERT_ID();
+			</selectKey>
+			
+			可以生成一个随机 ID
+			 <selectKey keyProperty="id" resultType="int" order="BEFORE"> 
+			    select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1 //select uuid()
+			  </selectKey>
+			  
+			  也可以是uuid的形式：
+			  select uuid()
+		 -->
+		<selectKey order="AFTER" keyProperty="userId" resultType="int">
+			select LAST_INSERT_ID();
+		</selectKey>
+		insert into user(user_id,username,password,age) values(null,#{username},#{password},#{age});
+	</insert>
+	
+	<delete id="deleteUser" parameterType="com.demo.model.User">
+		delete from user where user_id = #{userId};
+	</delete>
+	
+	<!-- 
+		批量删除的话就涉及到动态sql语句啦
+		原先的sql是： delete from user where user_id in (3,4,5);
+		
+		mybatis 动态sql就是拼接后面的in() 里边的参数,但是注意是从where开始
+		
+		collection="users"  是能够通过 parameterType="com.demo.vo.UserVo"的getter()方法获取得到的
+		
+	 -->
+	<delete id="deleteBatchUser" parameterType="com.demo.vo.UserVo">
+		delete from user 
+		<where>
+			<foreach collection="users" item="user" open="user_id in(" close=")" separator=",">
+				#{user.userId}
+			</foreach>
+		</where>
+	</delete>
+	
+	<update id="updateUser" parameterType="com.demo.model.User">
+		update user set username=#{username}, age=#{age}, password=#{password} where user_id=#{userId}; 
+	</update>
+	
+</mapper>

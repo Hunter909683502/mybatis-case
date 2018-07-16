@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 注意：
+		如果要使用mapper代理机制，要遵循以下几个原则：
+			1、<mapper namespace="com.demo.dao.ItemsDao">  中的namespace：指定对应接口的全类名
+			2、mapper.xml 文件要 和接口在同一个包下
+			3、select、update、delete、insert 这些标签的id必须和接口的方法名一致
+			4、select、update、delete、insert 这些标签的接收参数和方法接收参数一致、返回结果也要一致。
+			
+			拓展：select、update、delete、insert 这鞋标签对应的就是JDBC中的statement对象。
+			
+			还有getmapper的实现底层采用的是cglib的动态代理实现。
+			cglib的动态代理和Java JDK动态代理的实现由什么不一样呢？
+				cglib 可以理解为采用的是继承
+				JDK 采用的是接口实现
+				
+				这样也就决定两种方式实现JDK是有先行条件的，那就是JDK动态代理的目标类必须有实现某个接口。
+ -->
+<mapper namespace="com.demo.dao.ItemsDao">
+
+	<select id="getItemsByMultiConditions" parameterType="com.demo.model.Items" resultMap="itemsType">
+		SELECT items.* from items
+		<where>
+			<!-- 
+				注意这里test中填写的是parameterType中对应的属性，而不是表中对应的字段
+			 -->
+			<if test="itemsName != null and itemsName != '' ">
+				and items_name like '%${itemsName}%'
+			</if>
+			<if test="price != 0 and price != null">
+				and price >= #{price}
+			</if>
+		</where>
+	</select>
+	<select id="getItemById" parameterType="int" resultMap="itemsType">
+		SELECT items.* from items where items_id = #{value};
+	</select>
+	<!-- 没有配置结果集映射的话
+		Items [itemsId=null, itemsName=null, price=3000.0]
+		因为在items表中字段是items_id 、items_name、price
+		mybatis 无法自动封装到Items对象里边，所以就会出现有些值为null的情况
+	 -->
+	 <!-- 
+	 	resultMap：结果属性映射， 
+	 		type：指定映射的对象的类全名 
+	 		id:   与select语句中的resultMap的值一致，因为在一个mapper.xml中，可以配置多个resultMap，mybatis靠这个来匹配如何映射结果集
+	  -->
+	<resultMap type="com.demo.model.Items" id="itemsType">
+		<!-- 
+			id:比较特殊，一般用来配置主键
+				column:表中的列名
+				property：对象中的属性名
+				
+				拓展：
+					对象的属性：对象的属性不是对象的成员变量，而是getter、setter方法去掉get和set剩下的单词首字母变小写才是对象的属性
+					如： getAge();  -> age:就是对象的属性
+					由于一般的成员变量我们都会给它设置getter、setter，所以就会有种误解，即使成员变量中没有age，但是age也是对象的属性
+		 -->
+		<id column="items_id" property="itemsId"/>
+		<!-- result：用来配置字段 -->
+		<result column="items_name" property="itemsName"/>
+		<result column="price" property="price"/>
+	</resultMap>
+</mapper>

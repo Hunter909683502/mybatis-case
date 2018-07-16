@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- xml 约束
+	!DOCTYPE 后面的 configuration 规定了该xml文件的根节点为configuration
+ -->
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+
+<configuration>
+	<!-- 第一步、导入配置数据源的属性文件mysql.properties
+		resource属性：指向properties文件的相对路径
+	 -->
+	<properties resource="mysql.properties" />
+	
+	<!-- 配置mybatis的环境
+		environments 说明可以配置多个environment，最后根据default 属性指定使用的environment
+		default对应的是environment的id属性
+	 -->
+	<environments default="mysql-env">
+		<!-- 
+			The content of element type "environment" is incomplete, it must match 
+ 			"(transactionManager,dataSource)".
+ 			从上面的提示中可以看出，enviroment节点下必须有transactionManager 事务管理、
+ 			dataSource 数据源两个节点
+ 			
+		 -->
+		<environment id="mysql-env">
+			<!-- 设置事务管理器  事务有mybatis管理
+				注意：mybatis 默认不会自动提交事务，所以再进行增删改的时候需要自己提交事务
+			-->
+			<transactionManager type="JDBC" />
+			<!-- 设置数据源
+				type：
+					POOLED ：
+			 -->
+			<dataSource type="POOLED">
+				<property name="driver" value="${jdbc.mysql.Driver}"/>
+				<property name="url" value="${jdbc.mysql.Url}"/>
+				<property name="username" value="${jdbc.mysql.Username}"/>
+				<property name="password" value="${jdbc.mysql.Password}"/>
+			</dataSource>
+		</environment>
+	</environments>
+	
+	<!-- 导入映射文件 -->
+	<mappers>
+		<!-- <mapper resource="user.xml"/> -->
+		<package name="com.demo.dao"/>
+	</mappers>
+	
+</configuration>

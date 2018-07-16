@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.demo.dao.OrderDao">
+	<select id="getAllOrdersAndAboutUser" resultMap="ordersAndUser">
+		select 
+			u.*,o.*
+		from 
+			user u,orders o
+		where
+			u.user_id = o.user_id;
+	</select>
+	
+	
+	<resultMap type="com.demo.model.Orders" id="ordersAndUser">
+		<id column="orders_id" property="orderId"/>
+		<result column="count" property="count"/>
+		<result column="status" property="status"/>
+		<!-- 
+			一对一查询：
+				用association 标签来指定关联的对象
+				property:指定在类中的属性
+				javaType：指定该关联对象的类型，一般是全类名	
+		 -->
+		<association property="user" javaType="com.demo.model.User">
+			<id column="user_id" property="userId"/>
+			<result column="password" property="password"/>
+			<result column="age" property="age"/>
+			<result column="username" property="username"/>
+		</association>
+	</resultMap>
+	
+</mapper>
